@@ -883,25 +883,89 @@ export interface Image {
 	filename?: string;
 	buffer?: Buffer;
 }
+export type Chart = LineChart | ScatterChart;
+export interface LineChart {
+	type: 'lineChart';
+	title?: ChartText;
+	series: LineSeries[];
+	xAxis: DateAxis;
+	yAxis: ValueAxis;
+}
+export interface ScatterChart {
+	type: 'scatterChart';
+	title?: ChartText;
+	series: ScatterSeries[];
+	xAxis: ValueAxis;
+	yAxis: ValueAxis;
+}
+export type ChartText = ChartRich | ChartStringReference;
+export interface ChartRich {
+	rich: ChartRichTexts;
+}
+export interface ChartRichTexts {
+	texts: ChartRichText[];
+	direction?: 'vertical' | 'horizontal';
+}
+export interface ChartRichText {
+	font?: ChartRichTextFont;
+	text: string;
+}
+export interface ChartRichTextFont {
+	size?: number;
+	bold?: boolean;
+	italic?: boolean;
+	underline?: boolean | 'none' | 'words' | 'single' | 'double' | 'heavy';
+}
+export interface ChartStringReference {
+	strRef: string;
+}
+export interface LineSeries {
+	name: ChartText;
+	xValues: NumberValueReference;
+	yValues: NumberValueReference;
+	marker?: Marker;
+}
+export interface ScatterSeries {
+	name: ChartText;
+	xValues: NumberValueReference;
+	yValues: NumberValueReference;
+	marker?: Marker;
+}
+export interface NumberValueReference {
+	type: 'numRef';
+	value: string;
+}
+export interface Marker {
+	symbol: 'circle' | 'dash' | 'diamond' | 'dot' | 'none' | 'picture' | 'plus' | 'square' | 'star' | 'triangle' | 'x';
+	size: number;
+}
+export interface DateAxis {
+	title: ChartText;
+	formatCode: string;
+}
+export interface ValueAxis {
+	title: ChartText;
+	formatCode: string;
+}
 export interface IAnchor {
-	col: number;
-	row: number;
-	nativeCol: number;
-	nativeRow: number;
-	nativeColOff: number;
-	nativeRowOff: number;
+	col?: number;
+	row?: number;
+	nativeCol?: number;
+	nativeRow?: number;
+	nativeColOff?: number;
+	nativeRowOff?: number;
 }
 export class Anchor implements IAnchor {
-	col: number;
-	nativeCol: number;
-	nativeColOff: number;
-	nativeRow: number;
-	nativeRowOff: number;
-	row: number;
+	col?: number;
+	nativeCol?: number;
+	nativeColOff?: number;
+	nativeRow?: number;
+	nativeRowOff?: number;
+	row?: number;
 
-	private readonly colWidth: number;
-	private readonly rowHeight: number;
-	worksheet: Worksheet;
+	private readonly colWidth?: number;
+	private readonly rowHeight?: number;
+	worksheet?: Worksheet;
 
 	constructor(model?: IAnchor | object);
 }
@@ -1180,14 +1244,14 @@ export interface Worksheet {
 
 	/**
 	 * Tries to find and return row for row no, else undefined
-	 * 
+	 *
 	 * @param row The 1-index row number
 	 */
 	findRow(row: number): Row | undefined;
 
 	/**
 	 * Tries to find and return rows for row no start and length, else undefined
-	 * 
+	 *
 	 * @param start The 1-index starting row number
 	 * @param length The length of the expected array
 	 */
@@ -1325,6 +1389,17 @@ export interface Worksheet {
 
 	getImages(): Array<{
 		type: 'image',
+		imageId: string;
+		range: ImageRange;
+	}>;
+
+	/**
+	 * Using the chart id from `Workbook.addChart`,
+	 * embed an chart within the worksheet to cover a range
+	 */
+	addChart(chartId: number, range: string | { editAs?: string; } & ImageRange  | { editAs?: string; } & ImagePosition): void;
+
+	getCharts(): Array<{
 		imageId: string;
 		range: ImageRange;
 	}>;
@@ -1741,6 +1816,13 @@ export class Workbook {
 	addImage(img: Image): number;
 
 	getImage(id: number): Image;
+
+	/**
+	 * Add Chart to Workbook and return the id
+	 */
+	addChart(chart: Chart): number;
+
+	getChart(id: number): Chart;
 }
 
 export interface TableStyleProperties {
